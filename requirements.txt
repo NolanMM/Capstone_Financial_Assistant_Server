@@ -1,0 +1,14 @@
+django-cors-headers
+langchain-community
+langchain-openai
+langchain-core
+python-dotenv
+instructor
+langgraph
+yfinance
+pydantic
+requests
+pyngrok
+uvicorn
+openai
+Django
