@@ -76,4 +76,9 @@ This is the model will take the input is the query related to the financial fiel
 #### B. Output for General Knowledge Services
 - **Input Query**: What is a P/E ratio?
 
-![image](./documents/images/General_Financial_Concept.png)
+![image](./documents/images/Output_General_Financial_Concept.png)
+
+#### C. Output for Financial Advices Services (Stock Specific)
+- **Input Query**: Should I invest in an IPO?
+
+![image](./documents/images/Output_Financial_Advices.png)
