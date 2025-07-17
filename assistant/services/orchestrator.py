@@ -1,5 +1,6 @@
 from .financial_analysis import FinancialAnalysisService
 from .general_knowledge import GeneralKnowledgeServices
+from .investment_advice import InvestmentAdviceService
 from ..entities.user_intent import UserIntent
 from .route_query import RouteQueryService
 
@@ -40,6 +41,13 @@ class FinancialAssistant:
                     "data": response.dict()
                 }
             return {"type": "error", "data": {"message": "Could not generate general knowledge response."}}
+        
+        elif intent == UserIntent.INVESTMENT_ADVICE:
+            investment_advice_service = InvestmentAdviceService(self.client)
+            advice = investment_advice_service.provide_investment_advice(query)
+            if advice:
+                return {"type": "investment_advice", "data": advice.dict()}
+            return {"type": "error", "data": {"message": "Could not generate investment advice."}}
         
         return {"type": "error", "data": {"message": "Could not determine user intent."}}
 

@@ -13,7 +13,7 @@ class RouteQueryService:
             messages=[
                 {
                     "role": "system",
-                    "content": "You are an expert at classifying user queries in the financial domain. Determine if the user is asking about a specific stock/company or a general finance/economic topic.",
+                    "content": "You are an expert at classifying user queries in the financial domain. Determine if the user is asking about a specific stock/company, a general finance/economic topic, or is asking for investment advice ('should I...', 'is it a good idea to...').",
                 },
                 {"role": "user", "content": query},
             ],

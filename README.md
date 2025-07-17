@@ -23,7 +23,7 @@ This is the model will take the input is the query related to the financial fiel
 <details>
   <summary><b>Method 2: Install using Script (Automatically)</b></summary>
   <ul>
-    <li>Double-click the <code>install.bat</code> file to automatically install the required packages (Windows only).</li>
+    <li>Double-click the <code>Install.bat</code> file to automatically install the required packages (Windows only).</li>
   </ul>
 </details>
 
