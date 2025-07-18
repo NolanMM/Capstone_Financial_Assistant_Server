@@ -1,9 +1,12 @@
 django-cors-headers
 langchain-community
 langchain-openai
+psycopg2-binary
+dj-database-url
 langchain-core
 python-dotenv
 django-heroku
+whitenoise
 instructor
 langgraph
 yfinance
