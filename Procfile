@@ -1,1 +1,2 @@
-web: python manage.py runserver localhost:8000
+release: python manage.py migrate
+web: gunicorn server.wsgi:application --log-file -
