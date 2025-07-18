@@ -3,11 +3,13 @@ langchain-community
 langchain-openai
 langchain-core
 python-dotenv
+django-heroku
 instructor
 langgraph
 yfinance
 pydantic
 requests
+gunicorn
 pyngrok
 uvicorn
 openai
