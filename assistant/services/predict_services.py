@@ -24,33 +24,25 @@ except FileNotFoundError:
     raise RuntimeError(f"Checkpoint file not found at {CHK_PATH}. Please ensure the model file is in the correct directory.")
 
 def fetch_all_history(ticker: str, api_key: str) -> pd.DataFrame:
-    all_chunks = []
-    to_date = datetime.today().date()
-    chunk_size = 30
-
-    while True:
-        from_date = to_date - timedelta(days=int(chunk_size*1.5))
-        url = (
-            f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}"
-            f"?from={from_date:%Y-%m-%d}&to={to_date:%Y-%m-%d}"
-            f"&apikey={api_key}"
-        )
+    target_date = datetime.today().date() - timedelta(days=72)
+    target_date_str = target_date.strftime("%Y-%m-%d")
+    url = (
+        f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}"
+        f"?from={target_date_str}&to={target_date_str}&apikey={api_key}"
+    )
+    try:
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
         data = resp.json().get("historical", [])
-        if not data:
-            break
+    except requests.exceptions.RequestException as e:
+        print(f"API request failed: {e}")
+        return pd.DataFrame()
 
-        df_chunk = pd.DataFrame(data)[["date","open","high","low","close","volume"]]
-        df_chunk["date"] = pd.to_datetime(df_chunk["date"])
-        all_chunks.append(df_chunk)
+    if not data:
+        print(f"No data was found for {target_date_str}. It may have been a weekend or holiday.")
+        return pd.DataFrame()
 
-        earliest = df_chunk["date"].min().date()
-        if (to_date - earliest).days < 2:
-            break
-        to_date = earliest - timedelta(days=1)
-
-    df = pd.concat(all_chunks, ignore_index=True)
+    df = pd.DataFrame(data)
     df = df.drop_duplicates(subset="date").sort_values("date").reset_index(drop=True)
 
     df["Return_3D"]     = df["close"].pct_change(periods=3).shift(-3)
