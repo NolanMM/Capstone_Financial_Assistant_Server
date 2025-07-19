@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import numpy as np
 import pandas as pd
 import requests
@@ -23,12 +23,25 @@ try:
 except FileNotFoundError:
     raise RuntimeError(f"Checkpoint file not found at {CHK_PATH}. Please ensure the model file is in the correct directory.")
 
-def fetch_all_history(ticker: str, api_key: str) -> pd.DataFrame:
-    today_date = datetime.today().date().strftime("%Y-%m-%d")
-    target_date = datetime.today().date() - timedelta(days=72)
-    target_date_str = target_date.strftime("%Y-%m-%d")
-    url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?from={target_date_str}&to={today_date}&apikey={api_key}"
+def adjust_date_for_weekend(date_to_check: date) -> date:
+    weekday = date_to_check.weekday()
+    
+    if weekday == 5:
+        return date_to_check - timedelta(days=1)
+    elif weekday == 6:
+        return date_to_check - timedelta(days=2)
+    else:
+        return date_to_check
 
+def fetch_all_history(ticker: str, api_key: str) -> pd.DataFrame:
+    today_original = datetime.today().date()
+    target_original = today_original - timedelta(days=150)
+
+    today_adjusted = adjust_date_for_weekend(today_original)
+    target_adjusted = adjust_date_for_weekend(target_original)
+
+    url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?from={target_adjusted}&to={today_adjusted}&apikey={api_key}"
+    print(f"Fetching data from: {url}")
     try:
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
@@ -38,16 +51,19 @@ def fetch_all_history(ticker: str, api_key: str) -> pd.DataFrame:
         return pd.DataFrame()
 
     if not data:
-        print(f"No data was found for {target_date_str}. It may have been a weekend or holiday.")
+        print(f"No data was found for {target_adjusted}. It may have been a weekend or holiday.")
         return pd.DataFrame()
 
-    df = pd.DataFrame(data)
+    df = pd.DataFrame(data)[["date","open","high","low","close","volume"]]
+    df["date"] = pd.to_datetime(df["date"])
+
     df = df.drop_duplicates(subset="date").sort_values("date").reset_index(drop=True)
+    if len(df) > 72:
+        df = df.tail(72).reset_index(drop=True)
 
     df["Return_3D"]     = df["close"].pct_change(periods=3).shift(-3)
     df["Return_1D"]     = df["close"].pct_change()
     df["Volatility_3D"] = df["Return_1D"].rolling(window=3).std()
-
     return df.dropna(subset=["Return_3D","Volatility_3D"]).reset_index(drop=True)
 
 # --- LSTM Model Definition ---
@@ -133,7 +149,6 @@ def forecast_future_scaled(net, window_scaled, horizon): # Forecast future retur
     return np.array(preds)
 
 def get_prediction(ticker: str, fmp_api_key: str) -> dict:
-
     raw_df = fetch_all_history(ticker.upper(), fmp_api_key)
 
     df = (
