@@ -24,12 +24,11 @@ except FileNotFoundError:
     raise RuntimeError(f"Checkpoint file not found at {CHK_PATH}. Please ensure the model file is in the correct directory.")
 
 def fetch_all_history(ticker: str, api_key: str) -> pd.DataFrame:
+    today_date = datetime.today().date().strftime("%Y-%m-%d")
     target_date = datetime.today().date() - timedelta(days=72)
     target_date_str = target_date.strftime("%Y-%m-%d")
-    url = (
-        f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}"
-        f"?from={target_date_str}&to={target_date_str}&apikey={api_key}"
-    )
+    url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?from={target_date_str}&to={today_date}&apikey={api_key}"
+
     try:
         resp = requests.get(url, timeout=30)
         resp.raise_for_status()
