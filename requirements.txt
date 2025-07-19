@@ -17,3 +17,4 @@ pyngrok
 uvicorn
 openai
 Django
+torch

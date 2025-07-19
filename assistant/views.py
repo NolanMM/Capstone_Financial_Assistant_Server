@@ -1,3 +1,6 @@
+from assistant.services.predict_services import get_prediction
+from django.views.decorators.http import require_http_methods
+from django.http import JsonResponse, HttpResponseBadRequest
 from .services.orchestrator import FinancialAssistant
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -5,10 +8,12 @@ from django.shortcuts import render
 from dotenv import load_dotenv
 from openai import OpenAI
 import instructor
+import logging
 import json
 import os
 
 load_dotenv("./.env", override=True)
+logger = logging.getLogger(__name__)
 
 client = instructor.patch(OpenAI(api_key=os.getenv("OPEN_AI_KEY")))
 fmp_api_key = os.getenv("FMP_API_KEY")
@@ -19,6 +24,25 @@ assistant = FinancialAssistant(
     fmp_api_key=fmp_api_key,
     fh_api_key=fh_api_key
 )
+
+@require_http_methods(["GET"])
+def predict_price(request):
+    ticker = request.GET.get("ticker")
+    if not ticker:
+        return HttpResponseBadRequest("Ticker parameter is required.")
+
+    try:
+        prediction_data = get_prediction(ticker, fmp_api_key)
+        return JsonResponse(prediction_data, status=200)
+
+    except ValueError as e:
+        logger.warning(f"Prediction failed for ticker '{ticker}': {e}")
+        return HttpResponseBadRequest(f"Error processing ticker '{ticker}': {str(e)}")
+
+    except Exception as e:
+        # Catch any other unexpected server errors
+        logger.error(f"An unexpected error occurred for ticker '{ticker}': {e}")
+        return JsonResponse({'error': 'An internal server error occurred.'}, status=500)
 
 def index(request):
     """
