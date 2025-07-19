@@ -1,10 +1,8 @@
 django-cors-headers
 langchain-community
 langchain-openai
-dj-database-url
 langchain-core
 python-dotenv
-django-heroku
 whitenoise
 instructor
 langgraph
