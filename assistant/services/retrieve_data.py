@@ -21,12 +21,14 @@ class RetrieveDataServices:
             hist_url = f"https://financialmodelingprep.com/api/v3/historical-price-full/{ticker}?apikey={self.fmp_api_key}"
             hist_response = requests.get(hist_url)
             hist_response.raise_for_status()
-            historical_data = hist_response.json()["historical"][
-                :number_of_days_trading_1_year
-            ]
-
-            high_52_week = max(d["high"] for d in historical_data)
-            low_52_week = min(d["low"] for d in historical_data)
+            historical_data = hist_response.json()["historical"]
+            
+            high_52_week = None
+            low_52_week = None
+            if historical_data:
+                historical_data = historical_data[:number_of_days_trading_1_year]
+                high_52_week = max(d["high"] for d in historical_data)
+                low_52_week = min(d["low"] for d in historical_data)
 
             fmp_data = {
                 "profile": profile_data,
@@ -44,7 +46,8 @@ class RetrieveDataServices:
     def get_finnhub_news(self, ticker: str) -> str:
         """Gets company news for a given ticker from the past year using Finnhub API."""
         if not self.finnhub_api_key:
-            return "Finnhub API key not found."
+            print("Finnhub API key not found.")
+            return None
         to_date, from_date = datetime.now().strftime("%Y-%m-%d"), (
             datetime.now() - timedelta(days=365)
         ).strftime("%Y-%m-%d")
@@ -66,4 +69,4 @@ class RetrieveDataServices:
             )
         except requests.exceptions.RequestException as e:
             print(f"Error fetching news from Finnhub: {e}")
-            return "Could not retrieve news due to an API error."
+            return None
